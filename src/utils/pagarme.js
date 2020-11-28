@@ -1,28 +1,24 @@
+/* eslint-disable camelcase */
 const axios = require('axios').default;
 
 require('dotenv').config();
 
-const pay = async (amount, boleto) => {
+const gerarBoleto = async (
+	customer,
+	amount,
+	boleto_expiration_date,
+	boleto_instructions
+) => {
 	try {
 		const transaction = await axios.post(
 			'https://api.pagar.me/1/transactions/',
 			{
 				amount,
-				...boleto,
 				payment_method: 'boleto',
-				api_key: process.env.PAGARME_KEY,
-				postback_url: 'http://requestb.in/pkt7pgpk',
-				customer: {
-					type: 'individual',
-					country: 'br',
-					name: 'Aardvark Silva',
-					documents: [
-						{
-							type: 'cpf',
-							number: '00000000000',
-						},
-					],
-				},
+				customer,
+				api_key: process.env.PAGARME_CHAVE_DE_ACESSO,
+				boleto_expiration_date,
+				boleto_instructions,
 			}
 		);
 		return transaction.data;
@@ -31,10 +27,10 @@ const pay = async (amount, boleto) => {
 		return {
 			status: 'error',
 			data: {
-				mensagem: 'Erro no Pagamento',
+				mensagem: 'Erro ao gerar boleto de cobraça',
 			},
 		};
 	}
 };
 
-module.exports = { pay };
+module.exports = { gerarBoleto };
