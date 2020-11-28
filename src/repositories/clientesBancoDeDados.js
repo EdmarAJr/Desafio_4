@@ -23,7 +23,9 @@ const adicionarCliente = async (cliente) => {
 		return null;
 	}
 
-	const query = `UPDATE clientes SET deletado = $1 WHERE id = $2 RETURNING *`;
+	const query = `UPDATE clientes 
+					SET deletado = $1 
+					WHERE id = $2 RETURNING *`;
 	const result = await database.query({
 		text: query,
 		values: [estado, id],
@@ -36,11 +38,11 @@ const atualizarCliente = async (cliente) => {
 	const { id, nome, email, cpf, contato, cadastrado } = cliente;
 	const query = {
 		text: `UPDATE clientes 
-			SET nome = $1, 
-			email = $2, 
-			cpf = $3, 
-			contato = $4, 
-			cadastrado = $5 
+				SET nome = $1, 
+					email = $2, 
+					cpf = $3, 
+					contato = $4, 
+					cadastrado = $5 
 				WHERE id = $6 RETURNING *`,
 		values: [nome, email, cpf, contato, cadastrado, id],
 	};
@@ -50,33 +52,39 @@ const atualizarCliente = async (cliente) => {
 	return result.rows.shift();
 };
 
-const obterCliente = async (pedido = null) => {
-	const { id_usuario, busca, limit, offset } = pedido;
+const obterClientes = async (pedido) => {
+	const { idUsuario, offset, clientesPorPagina = 10 } = pedido;
+	const query = `SELECT * 
+					FROM clientes 
+					WHERE deletado = false
+						AND usuario_id = $1 
+					OFFSET $2
+					LIMIT $3`;
+	const result = await database.query({
+		text: query,
+		values: [idUsuario, offset, clientesPorPagina],
+	});
+
+	return result.rows;
+};
+
+const obterUmCliente = async (pedido) => {
+	const { idUsuario, busca, clientesPorPagina = 10, offset } = pedido;
 	if (!pedido) {
 		return null;
 	}
-
-	const query = `SELECT * FROM clientes WHERE deletado = false AND (nome ILIKE = %$2% OR email LIKE %$2% OR cpf LIKE %$2%) LIMIT $3 OFFSET $4`;
-	const result = await database.query({
-		text: query,
-		values: [pedido],
-	});
-
-	return result.rows.shift();
-};
-
-const obterClientes = async (pedido) => {
-	const { idUsuario, offset, limit = 10 } = pedido;
-
 	const query = `SELECT * 
-		FROM clientes 
-			WHERE deletado = false
-				AND usuario_id = $1 
-			LIMIT $2
-			OFFSET $3`;
+					FROM clientes 
+					WHERE deletado = false 
+						AND usuario_id = $1 
+						AND (nome ILIKE $2 
+							OR email ILIKE $2
+							OR cpf LIKE $2) 
+					LIMIT $3 
+					OFFSET $4`;
 	const result = await database.query({
 		text: query,
-		values: [idUsuario, limit, offset],
+		values: [idUsuario, `%${busca}%`, clientesPorPagina, offset],
 	});
 
 	return result.rows;
@@ -87,7 +95,10 @@ const obterClientesDeUsuario = async (id = null) => {
 		return null;
 	}
 
-	const query = `SELECT * FROM clientes WHERE usuario_id = $1 AND deletado = false`;
+	const query = `SELECT * 
+					FROM clientes 
+					WHERE usuario_id = $1 
+						AND deletado = false`;
 	const result = await database.query({
 		text: query,
 		values: [id],
@@ -100,7 +111,9 @@ const verificarExistenciaDeCliente = async (cpf = null) => {
 		return null;
 	}
 
-	const query = `SELECT * FROM clientes WHERE cpf = $1 AND deletado = false`;
+	const query = `SELECT * 
+					FROM clientes 
+					WHERE cpf = $1 AND deletado = false`;
 	const result = await database.query({
 		text: query,
 		values: [cpf],
@@ -110,7 +123,10 @@ const verificarExistenciaDeCliente = async (cpf = null) => {
 };
 
 const obterClientesCadastrados = async (cadastrado = true) => {
-	const query = `SELECT * FROM clientes WHERE deletado = false AND cadastrado = $1`;
+	const query = `SELECT * 
+					FROM clientes 
+					WHERE deletado = false 
+						AND cadastrado = $1`;
 	const result = await database.query({
 		text: query,
 		values: [cadastrado],
@@ -121,11 +137,11 @@ const obterClientesCadastrados = async (cadastrado = true) => {
 module.exports = {
 	adicionarCliente,
 	obterClientes,
+	obterUmCliente,
 	verificarExistenciaDeCliente,
 	atualizarCliente,
 	obterClientesDeUsuario,
 	obterClientesCadastrados,
 };
-
 
 // deletarCliente,
