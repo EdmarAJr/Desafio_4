@@ -22,13 +22,13 @@ const schema = {
 			id SERIAL PRIMARY KEY,
 			id_do_cliente INT NOT NULL,
 			descricao TEXT NOT NULL,
-			valor INTERGER NOT NULL,
+			valor INTEGER NOT NULL,
 			vencimento DATE NOT NULL,
 			link_do_boleto TEXT,
 			codigo_de_barras TEXT NOT NULL,
-			dataDePagamento DATE NOT NULL,
+			data_de_pagamento DATE DEFAULT NULL,
 			status VARCHAR(20) NOT NULL,
-			deletado BOOL DEFOULT FALSE
+			deletado BOOL DEFAULT FALSE
 	);`,
 };
 
