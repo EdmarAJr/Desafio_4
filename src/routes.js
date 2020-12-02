@@ -6,7 +6,7 @@ const Auth = require('./controllers/auth');
 const Clientes = require('./controllers/clientesController');
 const Usuarios = require('./controllers/usuariosController');
 const Pagamentos = require('./controllers/pagamento');
-//const Cobrancas = require('./controllers/CobrancaController');
+const Cobrancas = require('./controllers/cobrancaController');
 
 const Password = require('./middlewares/encrypt');
 const Session = require('./middlewares/sessions');
@@ -17,31 +17,14 @@ router.post('/pagamento', Session.verify, Pagamentos.pagamento);
 router.post('/usuarios', Password.encrypt, Usuarios.adicionarUsuario);
 
 router.post('/clientes', Session.verify, Clientes.adicionarCliente);
-router.get('/clientes', Session.verify, Clientes.buscarTodosClientes);
+router.get('/clientes', Session.verify, Clientes.listarTodosClientes);
+router.put('/clientes', Session.verify, Clientes.editarCliente);
 
-router.put('/clientes/id', Session.verify, Clientes.atualizarCliente);
+router.post('/cobrancas', Session.verify, Cobrancas.gerarCobranca);
 
 module.exports = router;
 
-
-
-// router.get(
-// 	'/clientes?clientesPorPagina=10&offset=20',
-// 	Session.verify,
-// 	Clientes.obterClientes
-// );
-// router.get(
-// 	'/clientes?busca=texto da busca&clientesPorPagina=10&offset=20',
-// 	Session.verify,
-// 	Clientes.obterCliente
-// );
-
-// router.post('/cobrancas', Session.verify, Cobranca.adicionarCobranca);
-// router.get(
-// 	'/cobrancas?cobrancasPorPagina=10&offset=20',
-// 	Session.verify,
-// 	Cobranca.listarCobranca
-// );
+// router.get( '/cobrancas' Session.verify, Corabca.atualizarCobranca);
 // router.put('/cobranca', Session.verify, Cobranca.atualizarCobranca);
-// router.get('/relatorio', Session.verify, Cobranca.obterRelatorio);
 
+// router.get('/relatorio', Session.verify, Cobranca.obterRelatorio);
