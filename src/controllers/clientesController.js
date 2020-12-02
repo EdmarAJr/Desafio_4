@@ -1,59 +1,43 @@
 const response = require('./response');
 const Clientes = require('../repositories/clientesBancoDeDados');
-// eslint-disable-next-line no-unused-vars
-//const { usuarios, clientes } = require('./base');
 
-const buscarTodosClientes = async (ctx) => {
-	const { offset = 0, limit = 10 } = ctx.params;
+const listarTodosClientes = async (ctx) => {
+	const { offset = 0, clientesPorPagina, busca = null } = ctx.query;
 	const { userId } = ctx.state;
 
-	const pedido = { idUsuario: userId, offset, limit };
-	const clients = await Clientes.obterClientes(pedido);
-	if (!clients) {
-		return response(ctx, 404, {
-			mensagem: 'não existe',
-		});
+	const pedido = {
+		idUsuario: userId,
+		busca,
+		offset,
+		limit: clientesPorPagina,
+	};
+	let clients;
+	if (!busca) {
+		clients = await Clientes.obterClientes(pedido);
+
+		if (!clients.length === 0) {
+			return response(ctx, 204, {
+				mensagem: 'Clientes inexistentes!',
+			});
+		}
+	} else {
+		clients = await Clientes.obterUmCliente(pedido);
+
+		if (clients.length === 0) {
+			return response(ctx, 204, {
+				mensagem: 'Busca por cliente não encontrada',
+			});
+		}
 	}
+
 	const todosClientes = clients.map((clientes) => {
 		return {
-			nome: Clientes.nome,
-			email: Clientes.email,
-			contato: Clientes.contato,
+			nome: clientes.nome,
+			email: clientes.email,
+			contato: clientes.contato,
 		};
 	});
-	return response(ctx, 201, { todosClientes });
-};
-
-const obterClientes = async (ctx) => {
-	const { id_usuario: idUsuario = null, cadastrado = true } = ctx.request.body;
-	if (idUsuario) {
-		const clientesDeUsuario = await Clientes.obterClientesDeUsuario(
-			idUsuario
-		);
-
-		if (clientesDeUsuario.length >= 1) {
-			return response(ctx, 200, clientesDeUsuario);
-		}
-		return response(ctx, 404, { message: 'Não Encontrado' });
-	}
-	const estaCadastrado = cadastrado === 'true';
-	const cadastrados = await Clientes.obterClientesCadastrados(estaCadastrado);
-	//console.log(ctx);
-console.log(ctx.headers);
-	return response(ctx, 200, cadastrados);
-};
-
-const obterCliente = (ctx) => {
-	const { id = null } = ctx.params;
-	if (id) {
-		const clienteAtual = clientes[id - 1];
-		if (clienteAtual) {
-			return response(ctx, 200, clienteAtual);
-		}
-
-		return response(ctx, 404, { message: 'Cliente não encontrado' });
-	}
-	return response(ctx, 400, { message: 'Mal formatado obter cliente' });
+	return response(ctx, 200, { clients: [...todosClientes] });
 };
 
 const adicionarCliente = async (ctx) => {
@@ -67,14 +51,14 @@ const adicionarCliente = async (ctx) => {
 		!body.idUsuario
 	) {
 		return response(ctx, 400, {
-			message: 'Pedido mal-formatado controller cliente',
+			message: 'Pedido mal formatado controller cliente',
 		});
 	}
 
 	const existencia = await Clientes.verificarExistenciaDeCliente(body.cpf);
 
 	if (existencia) {
-		return response(ctx, 400, { message: 'Cliente já existente' });
+		return response(ctx, 400, { message: 'Este cliente já existente' });
 	}
 
 	const cliente = {
@@ -90,9 +74,9 @@ const adicionarCliente = async (ctx) => {
 	return response(ctx, 201, result);
 };
 
-const atualizarCliente = async (ctx) => {
-	const { id = null } = ctx.params;
+const editarCliente = async (ctx) => {
 	const {
+		id = null,
 		nome = null,
 		email = null,
 		cpf = null,
@@ -101,33 +85,36 @@ const atualizarCliente = async (ctx) => {
 	} = ctx.request.body;
 
 	if (!nome && !email && !cpf && !contato) {
-		return response(ctx, 400, { message: 'Pedido mal-formatado' });
+		return response(ctx, 400, {
+			message: 'Pedido para atualizar cliente mal-formatado ',
+		});
 	}
 
 	if (id) {
-		const clienteAtual = await Clientes.obterClient(id);
+		const clienteAtual = await Clientes.obterClientes(id);
 		if (clienteAtual) {
+			//console.log(clienteAtual);
 			const clienteAtualizado = {
 				id: clienteAtual.id,
 				nome: nome || clienteAtual.nome,
 				email: email || clienteAtual.email,
 				cpf: cpf || clienteAtual.cpf,
 				contato: contato || clienteAtual.contato,
-				deletado: deletado === false,
+				deletado: deletado === true,
 			};
-
 			const result = await Clientes.atualizarCliente(clienteAtualizado);
+			//console.log(clienteAtualizado) o id está chegando null e sentando undefined;
 			return response(ctx, 200, result);
 		}
 	}
 
-	return response(ctx, 404, { message: 'Cliente não encontrado' });
+	return response(ctx, 404, {
+		message: 'Cliente informado para edição não encontrado',
+	});
 };
 
 module.exports = {
-	obterClientes,
-	obterCliente,
 	adicionarCliente,
-	atualizarCliente,
-	buscarTodosClientes,
+	listarTodosClientes,
+	editarCliente,
 };
