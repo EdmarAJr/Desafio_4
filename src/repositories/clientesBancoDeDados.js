@@ -51,18 +51,30 @@ const atualizarCliente = async (cliente) => {
 
 	return result.rows.shift();
 };
+const obterCliente = async (campo, valor, id_user) => {
+	if (!campo) {
+		return null;
+	}
 
-const obterClientes = async (pedido) => {
-	const { idUsuario, offset, clientesPorPagina = 10 } = pedido;
+	const query = {
+		text: `SELECT * FROM clientes WHERE ${campo} = $1 AND usuario_id = $2 AND deletado = FALSE`,
+		values: [valor, id_user],
+	};
+	const result = await database.query(query);
+	return result.rows.shift();
+};
+
+const obterClientes = async (pedido, idCobranca, idCliente, usuarioId) => {
+	const { idUsuario, clientesPorPagina = 10, offset } = pedido;
 	const query = `SELECT * 
 					FROM clientes 
 					WHERE deletado = false
 						AND usuario_id = $1 
-					OFFSET $2
-					LIMIT $3`;
+					LIMIT $2
+					OFFSET $3`;
 	const result = await database.query({
 		text: query,
-		values: [idUsuario, offset, clientesPorPagina],
+		values: [idUsuario, clientesPorPagina, offset],
 	});
 
 	return result.rows;
@@ -136,6 +148,7 @@ const obterClientesCadastrados = async (cadastrado = true) => {
 
 module.exports = {
 	adicionarCliente,
+	obterCliente,
 	obterClientes,
 	obterUmCliente,
 	verificarExistenciaDeCliente,
