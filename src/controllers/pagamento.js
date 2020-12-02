@@ -1,6 +1,6 @@
 const pagarme = require('../utils/pagarme');
 const Clientes = require('../repositories/usuariosBancoDeDados');
-const Boleto = require('../repositories/boleto');
+const Boleto = require('../repositories/cobrancaBancoDeDados');
 const response = require('./response');
 
 const pagamento = async (ctx) => {

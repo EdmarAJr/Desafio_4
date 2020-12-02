@@ -3,12 +3,7 @@ const axios = require('axios').default;
 
 require('dotenv').config();
 
-const gerarBoleto = async (
-	customer,
-	amount,
-	boleto_expiration_date,
-	boleto_instructions
-) => {
+const gerarBoleto = async (amount, customer, boleto_expiration_date) => {
 	try {
 		const transaction = await axios.post(
 			'https://api.pagar.me/1/transactions/',
@@ -18,7 +13,6 @@ const gerarBoleto = async (
 				customer,
 				api_key: process.env.PAGARME_CHAVE_DE_ACESSO,
 				boleto_expiration_date,
-				boleto_instructions,
 			}
 		);
 		return transaction.data;

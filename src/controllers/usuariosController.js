@@ -30,7 +30,7 @@ module.exports = {
 	adicionarUsuario,
 };
 
-/*const Clientes = require('../repositories/clientesBancoDeDados');*/
+/* const Clientes = require('../repositories/clientesBancoDeDados'); */
 
 /* const obterUsuarios = async (ctx) => {
 	const result = await Usuarios.obterUsuarios();
@@ -49,7 +49,6 @@ const obterUsuario = async (ctx) => {
 
 	return response(ctx, 400, { message: 'Mal formatado' });
 }; */
-
 
 /* const atualizarUsuario = async (ctx) => {
 	const { id = null } = ctx.params;
@@ -101,5 +100,3 @@ const obterUsuario = async (ctx) => {
 
 	return response(ctx, 404, { message: 'Usuário não encontrado' });
 }; */
-
-

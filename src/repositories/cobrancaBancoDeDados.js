@@ -2,12 +2,12 @@ const database = require('../utils/database');
 
 const gerarCobranca = async (boleto) => {
 	const {
-		clientId,
+		id_cliente,
 		descricao,
 		valor,
 		vencimento,
 		linkBoleto,
-		codigoBoleto,
+		codigo_boleto,
 		status,
 	} = boleto;
 	const query = {
@@ -15,23 +15,23 @@ const gerarCobranca = async (boleto) => {
 			id_do_cliente, 
 			descricao, 
 			valor, 
-			vencimento, 
+			vencimento,
 			link_do_boleto,
 			codigo_de_barras,
 			status
 			) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`,
 		values: [
-			clientId,
+			id_cliente,
 			descricao,
 			valor,
 			vencimento,
 			linkBoleto,
-			codigoBoleto,
+			codigo_boleto,
 			status,
 		],
 	};
-	const result = await database.query(query);
-	return result.rows.shift();
+	const resposta = await database.query(query);
+	return resposta.rows.shift();
 };
 
 const listarCobrancas = async (idUsuario) => {
@@ -40,7 +40,7 @@ const listarCobrancas = async (idUsuario) => {
 			FROM cobrancas
 			WEHRE id_do_cliente IN (
 				SELECT id FROM clientes
-					WHERE usuario_id
+					WHERE usuario_id = $1
 			);`,
 		values: [idUsuario],
 	};
