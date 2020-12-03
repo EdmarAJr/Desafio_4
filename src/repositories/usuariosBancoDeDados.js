@@ -1,6 +1,6 @@
 const database = require('../utils/database');
 
-const adicionarUsuario = async (usuarios) => {
+const criarUsuarioDB = async (usuarios) => {
 	const { nome, email, senha } = usuarios;
 	const query = {
 		text: `INSERT INTO usuarios (
@@ -57,7 +57,7 @@ const adicionarUsuario = async (usuarios) => {
 	return result.rows.shift();
 }; */
 
-const obterUsuarioPorEmail = async (email = null) => {
+const buscarUsuarioPorEmail = async (email = null) => {
 	if (!email) {
 		return null;
 	}
@@ -82,8 +82,8 @@ const obterUsuarioPorEmail = async (email = null) => {
 }; */
 
 module.exports = {
-	adicionarUsuario,
-	obterUsuarioPorEmail,
+	criarUsuarioDB,
+	buscarUsuarioPorEmail,
 };
 /* deletarUsuario,
 	atualizarUsuario,

@@ -1,7 +1,7 @@
 const response = require('./response');
 const Usuarios = require('../repositories/usuariosBancoDeDados');
 
-const adicionarUsuario = async (ctx) => {
+const criarUsuario = async (ctx) => {
 	const { email = null, nome = null } = ctx.request.body;
 	const { hash } = ctx.state;
 	if (!email || !nome) {
@@ -10,7 +10,7 @@ const adicionarUsuario = async (ctx) => {
 		});
 	}
 
-	const existencia = await Usuarios.obterUsuarioPorEmail(email);
+	const existencia = await Usuarios.buscarUsuarioPorEmail(email);
 
 	if (existencia) {
 		return response(ctx, 400, { message: 'Usuário já existente' });
@@ -22,12 +22,12 @@ const adicionarUsuario = async (ctx) => {
 		nome,
 	};
 
-	const result = await Usuarios.adicionarUsuario(usuario);
+	const result = await Usuarios.criarUsuarioDB(usuario);
 	return response(ctx, 201, result);
 };
 
 module.exports = {
-	adicionarUsuario,
+	criarUsuario,
 };
 
 /* const Clientes = require('../repositories/clientesBancoDeDados'); */

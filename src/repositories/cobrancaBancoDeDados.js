@@ -2,12 +2,12 @@ const database = require('../utils/database');
 
 const gerarCobranca = async (boleto) => {
 	const {
-		id_cliente,
+		idCliente,
 		descricao,
 		valor,
 		vencimento,
 		linkBoleto,
-		codigo_boleto,
+		codigoBoleto,
 		status,
 	} = boleto;
 	const query = {
@@ -21,12 +21,12 @@ const gerarCobranca = async (boleto) => {
 			status
 			) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`,
 		values: [
-			id_cliente,
+			idCliente,
 			descricao,
 			valor,
 			vencimento,
 			linkBoleto,
-			codigo_boleto,
+			codigoBoleto,
 			status,
 		],
 	};
@@ -34,27 +34,26 @@ const gerarCobranca = async (boleto) => {
 	return resposta.rows.shift();
 };
 
-const listarCobrancas = async (idUsuario) => {
+const controleDeCobrancasDB = async (idUsuario) => {
 	const query = {
 		text: `SELECT * 
 			FROM cobrancas
-			WEHRE id_do_cliente IN (
+			WHERE id_do_cliente IN (
 				SELECT id FROM clientes
 					WHERE usuario_id = $1
 			);`,
 		values: [idUsuario],
 	};
-
 	const result = await database.query(query);
 	return result.rows;
 };
 
-const quitarCobranca = async (cobrancaId) => {
+const quitarCobranca = async (idDaCobranca) => {
 	const query = {
 		text: `UPDATE cobrancas
-				SET status = pago //talvez criar a tabela com defaul pago false
+				SET status = 'PAGO'
 				WHERE id = $1 RETURNING*;`,
-		values: [cobrancaId],
+		values: [idDaCobranca],
 	};
 	const response = await database.query(query);
 	return response.rows.shift();
@@ -62,6 +61,6 @@ const quitarCobranca = async (cobrancaId) => {
 
 module.exports = {
 	gerarCobranca,
-	listarCobrancas,
+	controleDeCobrancasDB,
 	quitarCobranca,
 };

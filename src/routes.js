@@ -14,17 +14,18 @@ const Session = require('./middlewares/sessions');
 router.post('/auth', Auth.autenticar);
 router.post('/pagamento', Session.verify, Pagamentos.pagamento);
 
-router.post('/usuarios', Password.encrypt, Usuarios.adicionarUsuario);
+router.post('/usuarios', Password.encrypt, Usuarios.criarUsuario);
 
-router.post('/clientes', Session.verify, Clientes.adicionarCliente);
+router.post('/clientes', Session.verify, Clientes.criarCliente);
 router.get('/clientes', Session.verify, Clientes.listarTodosClientes);
 router.put('/clientes', Session.verify, Clientes.editarCliente);
 
 router.post('/cobrancas', Session.verify, Cobrancas.gerarCobranca);
+router.put('/cobranca', Session.verify, Cobrancas.controleDeCobrancas);
+router.put('/cobrancas', Session.verify, Cobrancas.quitarCobranca);
 
 module.exports = router;
 
-// router.get( '/cobrancas' Session.verify, Corabca.atualizarCobranca);
-// router.put('/cobranca', Session.verify, Cobranca.atualizarCobranca);
+
 
 // router.get('/relatorio', Session.verify, Cobranca.obterRelatorio);

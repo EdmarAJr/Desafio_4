@@ -13,7 +13,7 @@ const listarTodosClientes = async (ctx) => {
 	};
 	let clients;
 	if (!busca) {
-		clients = await Clientes.obterClientes(pedido);
+		clients = await Clientes.listarTodosClientesDB(pedido);
 
 		if (!clients.length === 0) {
 			return response(ctx, 204, {
@@ -40,13 +40,13 @@ const listarTodosClientes = async (ctx) => {
 	return response(ctx, 200, { clients: [...todosClientes] });
 };
 
-const adicionarCliente = async (ctx) => {
+const criarCliente = async (ctx) => {
 	const { body } = ctx.request;
 
 	if (
 		!body.nome ||
-		!body.email ||
 		!body.cpf ||
+		!body.email ||
 		!body.contato ||
 		!body.idUsuario
 	) {
@@ -69,7 +69,7 @@ const adicionarCliente = async (ctx) => {
 		idUsuario: body.idUsuario,
 	};
 
-	const result = await Clientes.adicionarCliente(cliente);
+	const result = await Clientes.criarClienteDB(cliente);
 
 	return response(ctx, 201, result);
 };
@@ -78,31 +78,31 @@ const editarCliente = async (ctx) => {
 	const {
 		id = null,
 		nome = null,
-		email = null,
 		cpf = null,
+		email = null,
 		contato = null,
 		deletado = false,
 	} = ctx.request.body;
 
-	if (!nome && !email && !cpf && !contato) {
+	if (!nome && !cpf && !email && !contato) {
 		return response(ctx, 400, {
 			message: 'Pedido para atualizar cliente mal-formatado ',
 		});
 	}
 
 	if (id) {
-		const clienteAtual = await Clientes.obterClientes(id);
+		const clienteAtual = await Clientes.listarTodosClientesDB(id);
 		if (clienteAtual) {
 			//console.log(clienteAtual);
 			const clienteAtualizado = {
 				id: clienteAtual.id,
 				nome: nome || clienteAtual.nome,
-				email: email || clienteAtual.email,
 				cpf: cpf || clienteAtual.cpf,
+				email: email || clienteAtual.email,
 				contato: contato || clienteAtual.contato,
-				deletado: deletado === true,
+				deletado: deletado === false,
 			};
-			const result = await Clientes.atualizarCliente(clienteAtualizado);
+			const result = await Clientes.editarClienteDB(clienteAtualizado);
 			//console.log(clienteAtualizado) o id está chegando null e sentando undefined;
 			return response(ctx, 200, result);
 		}
@@ -114,7 +114,7 @@ const editarCliente = async (ctx) => {
 };
 
 module.exports = {
-	adicionarCliente,
+	criarCliente,
 	listarTodosClientes,
 	editarCliente,
 };
