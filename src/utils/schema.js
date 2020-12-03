@@ -11,8 +11,8 @@ const schema = {
 	2: `CREATE TABLE IF NOT EXISTS clientes (
 			id SERIAL PRIMARY KEY,
 			nome TEXT NOT NULL,
-			email TEXT NOT NULL,
 			cpf VARCHAR(11) NOT NULL,
+			email TEXT NOT NULL,
 			contato VARCHAR(11),
 			usuario_id INT NOT NULL,
 			deletado BOOL DEFAULT FALSE,
