@@ -1,45 +1,16 @@
+/* eslint-disable dot-notation */
 const response = require('./response');
 const Clientes = require('../repositories/clientesBancoDeDados');
+const TestarCpf = require('../utils/testarCpf');
+const Cobrancas = require('../repositories/cobrancaBancoDeDados');
+/* Estas duas funções foram o meu gargalo de conhecimento. 
+Elas não são minhas. Usei para terminar o desafio */
+const Paginas = require('../utils/paginas');
+const { formatarClientes } = require('../utils/relatorio');
 
-const listarTodosClientes = async (ctx) => {
-	const { offset = 0, clientesPorPagina, busca = null } = ctx.query;
-	const { userId } = ctx.state;
-
-	const pedido = {
-		idUsuario: userId,
-		busca,
-		offset,
-		limit: clientesPorPagina,
-	};
-	let clients;
-	if (!busca) {
-		clients = await Clientes.listarTodosClientesDB(pedido);
-
-		if (!clients.length === 0) {
-			return response(ctx, 204, {
-				mensagem: 'Clientes inexistentes!',
-			});
-		}
-	} else {
-		clients = await Clientes.obterUmCliente(pedido);
-
-		if (clients.length === 0) {
-			return response(ctx, 204, {
-				mensagem: 'Busca por cliente não encontrada',
-			});
-		}
-	}
-
-	const todosClientes = clients.map((clientes) => {
-		return {
-			nome: clientes.nome,
-			email: clientes.email,
-			contato: clientes.contato,
-		};
-	});
-	return response(ctx, 200, { clients: [...todosClientes] });
-};
-
+/**
+ * Cria cliente e verifica se o CPF é válido
+ */
 const criarCliente = async (ctx) => {
 	const { body } = ctx.request;
 
@@ -55,6 +26,18 @@ const criarCliente = async (ctx) => {
 		});
 	}
 
+	/**
+	 * Trata e valida o CPF no formato 000.000.000-00 */
+	const validarCpf = /^[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}$/;
+	if (!TestarCpf.testarCPF(body.cpf)) {
+		return response(ctx, 400, { mensagem: 'Cpf inválido' });
+	}
+
+	if (!validarCpf.test(body.cpf) || !body.cpf) {
+		return response(ctx, 400, {
+			mensagem: 'Cpf mal formatado! Exemplo: xxx.xxx.xxx-xx',
+		});
+	}
 	const existencia = await Clientes.verificarExistenciaDeCliente(body.cpf);
 
 	if (existencia) {
@@ -74,6 +57,56 @@ const criarCliente = async (ctx) => {
 	return response(ctx, 201, result);
 };
 
+/**
+ *Lista todos clientes a existência por usuário
+ */
+const listarTodosClientes = async (ctx) => {
+	const { offset = 0, clientesPorPagina, busca = null } = ctx.query;
+	const { userId } = ctx.state;
+
+	const pedido = {
+		idUsuario: userId,
+		busca,
+		offset,
+		limit: clientesPorPagina,
+	};
+
+	let clients;
+
+	if (!busca) {
+		clients = await Clientes.listarTodosClientesDB(pedido);
+
+		if (!clients.length === 0) {
+			return response(ctx, 204, {
+				mensagem: 'Clientes inexistentes!',
+			});
+		}
+	} else {
+		clients = await Clientes.obterQuandoTiverBuscaDB(pedido);
+
+		if (clients.length === 0) {
+			return response(ctx, 204, {
+				mensagem: 'Busca por cliente não encontrada',
+			});
+		}
+	}
+	const cobrancas = await Cobrancas.controleDeCobrancasDB(userId);
+	const paginacao = Paginas(clients, clientesPorPagina, offset);
+	const clientesFomatados = formatarClientes(
+		paginacao['itensDaPagina'],
+		cobrancas
+	);
+
+	return response(ctx, 200, {
+		paginaAtual: paginacao.paginaAtual,
+		totalDePaginas: paginacao.paginasTotais,
+		clientes: clientesFomatados,
+	});
+};
+
+/**
+ * Edita clientes mediante a busca
+ */
 const editarCliente = async (ctx) => {
 	const {
 		id = null,
@@ -84,26 +117,24 @@ const editarCliente = async (ctx) => {
 		deletado = false,
 	} = ctx.request.body;
 
-	if (!nome && !cpf && !email && !contato) {
+	if (id && !nome && !cpf && !email && !contato) {
 		return response(ctx, 400, {
 			message: 'Pedido para atualizar cliente mal-formatado ',
 		});
 	}
 
 	if (id) {
-		const clienteAtual = await Clientes.listarTodosClientesDB(id);
+		const clienteAtual = await Clientes.obterClientesCadastrados(id);
 		if (clienteAtual) {
-			//console.log(clienteAtual);
 			const clienteAtualizado = {
-				id: clienteAtual.id,
+				id,
 				nome: nome || clienteAtual.nome,
 				cpf: cpf || clienteAtual.cpf,
 				email: email || clienteAtual.email,
 				contato: contato || clienteAtual.contato,
-				deletado: deletado === false,
+				deletado,
 			};
 			const result = await Clientes.editarClienteDB(clienteAtualizado);
-			//console.log(clienteAtualizado) o id está chegando null e sentando undefined;
 			return response(ctx, 200, result);
 		}
 	}
