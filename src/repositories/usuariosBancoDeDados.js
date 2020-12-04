@@ -15,6 +15,20 @@ const criarUsuarioDB = async (usuarios) => {
 	return result.rows.shift();
 };
 
+const buscarUsuarioPorEmail = async (email = null) => {
+	if (!email) {
+		return null;
+	}
+
+	const query = `SELECT * FROM usuarios WHERE email = $1 AND deletado = false`;
+	const result = await database.query({
+		text: query,
+		values: [email],
+	});
+
+	return result.rows.shift();
+};
+
 /* const deletarUsuario = async (estado) => {
 	if (!estado) {
 		return null;
@@ -56,20 +70,6 @@ const criarUsuarioDB = async (usuarios) => {
 
 	return result.rows.shift();
 }; */
-
-const buscarUsuarioPorEmail = async (email = null) => {
-	if (!email) {
-		return null;
-	}
-
-	const query = `SELECT * FROM usuarios WHERE email = $1 AND deletado = false`;
-	const result = await database.query({
-		text: query,
-		values: [email],
-	});
-
-	return result.rows.shift();
-};
 
 /* const obterUsuarios = async (deletado = false) => {
 	const query = `SELECT * FROM usuarios WHERE deletado = $1;`;

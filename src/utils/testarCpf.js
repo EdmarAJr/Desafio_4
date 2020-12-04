@@ -9,7 +9,6 @@ const testarCPF = (strCPF) => {
 		soma += limparCPF.substring(i - 1, i) * (11 - i);
 		resto = (soma * 10) % 11;
 	}
-	console.log(1, resto, limparCPF.substring(9, 10));
 	if (resto == 10 || resto == 11) resto = 0;
 	if (resto != limparCPF.substring(9, 10)) return false;
 

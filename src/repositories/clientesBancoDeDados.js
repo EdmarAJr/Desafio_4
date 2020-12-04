@@ -1,5 +1,10 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable camelcase */
 const database = require('../utils/database');
 
+/**
+ * Insere infomações sobre um cliente na tabela clientes no banco dados.
+ */
 const criarClienteDB = async (cliente) => {
 	const { nome, cpf, email, contato, idUsuario } = cliente;
 	const query = {
@@ -18,6 +23,9 @@ const criarClienteDB = async (cliente) => {
 	return result.rows.shift();
 };
 
+/**
+ * Edita infomações sobre um cliente específico na tabela clientes no banco dados.
+ */
 const editarClienteDB = async (cliente) => {
 	const { nome, cpf, email, contato, id } = cliente;
 	const query = {
@@ -35,6 +43,9 @@ const editarClienteDB = async (cliente) => {
 	return result.rows.shift();
 };
 
+/**
+ * Busca infomações sobre um cliente específico na tabela clientes no banco dados.
+ */
 const obterCliente = async (campo, valor, id_user) => {
 	if (!campo) {
 		return null;
@@ -52,6 +63,9 @@ const obterCliente = async (campo, valor, id_user) => {
 	return result.rows.shift();
 };
 
+/**
+ * Lista infomações sobre todos clientes de um usuário na tabela clientes no banco dados.
+ */
 const listarTodosClientesDB = async (
 	pedido,
 	idCobranca,
@@ -73,7 +87,10 @@ const listarTodosClientesDB = async (
 	return result.rows;
 };
 
-const obterUmCliente = async (pedido) => {
+/**
+ * Busca infomações sobre um cliente específico na tabela clientes no banco dados.
+ */
+const obterQuandoTiverBuscaDB = async (pedido) => {
 	const { idUsuario, busca, clientesPorPagina = 10, offset } = pedido;
 	if (!pedido) {
 		return null;
@@ -95,22 +112,9 @@ const obterUmCliente = async (pedido) => {
 	return result.rows;
 };
 
-const obterClientesDeUsuario = async (id = null) => {
-	if (!id) {
-		return null;
-	}
-
-	const query = `SELECT * 
-					FROM clientes 
-					WHERE usuario_id = $1 
-						AND deletado = false`;
-	const result = await database.query({
-		text: query,
-		values: [id],
-	});
-	return result.rows.shift();
-};
-
+/**
+ * Verificar se existem infomações sobre um cliente na tabela clientes no banco dados.
+ */
 const verificarExistenciaDeCliente = async (cpf = null) => {
 	if (!cpf) {
 		return null;
@@ -127,43 +131,26 @@ const verificarExistenciaDeCliente = async (cpf = null) => {
 	return result.rows.shift();
 };
 
-const obterClientesCadastrados = async (cadastrado = true) => {
+/**
+ * Busca por infomações sobre um cliente cadastado na tabela clientes no banco dados.
+ */
+const obterClientesCadastrados = async (id) => {
 	const query = `SELECT * 
 					FROM clientes 
-					WHERE deletado = false 
-						AND cadastrado = $1`;
+					WHERE id = $1`;
 	const result = await database.query({
 		text: query,
-		values: [cadastrado],
+		values: [id],
 	});
 	return result.rows;
 };
-
-/* const deletarCliente = async (id, estado) => {
-	if (!estado) {
-		return null;
-	}
-
-	const query = `UPDATE clientes 
-					SET deletado = $1 
-					WHERE id = $2 RETURNING *`;
-	const result = await database.query({
-		text: query,
-		values: [estado, id],
-	});
-
-	return result.rows.shift();
-}; */
 
 module.exports = {
 	criarClienteDB,
 	editarClienteDB,
 	obterCliente,
 	listarTodosClientesDB,
-	obterUmCliente,
-	obterClientesDeUsuario,
+	obterQuandoTiverBuscaDB,
 	verificarExistenciaDeCliente,
 	obterClientesCadastrados,
 };
-
-// deletarCliente,

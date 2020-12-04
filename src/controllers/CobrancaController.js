@@ -1,9 +1,15 @@
+/* eslint-disable dot-notation */
 const response = require('./response');
 const Clientes = require('../repositories/clientesBancoDeDados');
 const Cobrancas = require('../repositories/cobrancaBancoDeDados');
 const Pagarme = require('../utils/pagarme');
 const TestarCpf = require('../utils/testarCpf');
+const Paginas = require('../utils/paginas');
+const Relatorios = require('../utils/relatorio');
 
+/**
+ * Insere infomações sobre cobrança de um cliente relacionado a um usuário na tabela cobranca no banco dados.
+ */
 const gerarCobranca = async (ctx) => {
 	const usuarioId = ctx.state.userId;
 
@@ -26,7 +32,7 @@ const gerarCobranca = async (ctx) => {
 	}
 	/**
 	 * Trata e valida a data de vencimento */
-	const validarData = /^[0-9]{4}\-[0-9]{2}\-[0-9]{2}$/;
+	const validarData = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
 	if (
 		!validarData.test(vencimento) ||
 		Number.isNaN(new Date(vencimento).getTime()) ||
@@ -42,7 +48,7 @@ const gerarCobranca = async (ctx) => {
 	}
 	/**
 	 * Trata e valida o CPF no formato 000.000.000-00 */
-	const validarCpf = /^[0-9]{3}\.[0-9]{3}\.[0-9]{3}\-[0-9]{2}$/;
+	const validarCpf = /^[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}$/;
 	if (!TestarCpf.testarCPF(client.cpf)) {
 		return response(ctx, 400, { mensagem: 'Cpf inválido' });
 	}
@@ -82,7 +88,7 @@ const gerarCobranca = async (ctx) => {
 		status: boletoPagarme.status,
 	};
 
-	const respostaBancoDeDados = await Cobrancas.gerarCobranca(boleto);
+	const respostaBancoDeDados = await Cobrancas.gerarCobrancaDB(boleto);
 
 	const cobranca = {
 		idDoCliente: respostaBancoDeDados.id_do_cliente,
@@ -94,18 +100,18 @@ const gerarCobranca = async (ctx) => {
 	};
 	return response(ctx, 201, { cobranca });
 };
-/*const controleDeCobrancas = async (ctx) => {
+
+/**
+ * Lista e controla infomações sobre cobrança de um cliente relacionado a um usuário na tabela cobranca no banco dados.
+ */
+const controleDeCobrancas = async (ctx) => {
 	const { cobrancasPorPagina = 10, offset = 0 } = ctx.query;
 	const { userId } = ctx.state;
 
 	const todasAscobrancas = await Cobrancas.controleDeCobrancasDB(userId);
-	// const paginacao = calcularPaginas(
-	// 	todasAscobrancas,
-	// 	cobrancasPorPagina,
-	// 	offset
-	// );
+	const paginacao = Paginas(todasAscobrancas, cobrancasPorPagina, offset);
 
-	const boletosResposta = formatacaoRelatorios.formatarCobranca(
+	const boletosResposta = Relatorios.formatarCobranca(
 		paginacao['itensDaPagina']
 	);
 
@@ -115,8 +121,11 @@ const gerarCobranca = async (ctx) => {
 		cobrancas: boletosResposta,
 	};
 	return response(ctx, 200, resposta);
-};*/
+};
 
+/**
+ * Atualica infomações sobre cobrança de um cliente relacionado a um usuário na tabela cobranca no banco dados.
+ */
 const quitarCobranca = async (ctx) => {
 	const { userId } = ctx.state;
 	const { idDaCobranca } = ctx.request.body;
@@ -146,7 +155,7 @@ const quitarCobranca = async (ctx) => {
 		return response(ctx, 400, { mensagem: 'Boleto vencido!' });
 	}
 
-	const cobrancaPaga = await Cobrancas.quitarCobranca(idDaCobranca);
+	const cobrancaPaga = await Cobrancas.quitarCobrancaDB(idDaCobranca);
 
 	if (!cobrancaPaga) {
 		return response(ctx, 404, {

@@ -1,6 +1,6 @@
-const database = require('../utils/database');
+const Database = require('../utils/database');
 
-const gerarCobranca = async (boleto) => {
+const gerarCobrancaDB = async (boleto) => {
 	const {
 		idCliente,
 		descricao,
@@ -30,7 +30,7 @@ const gerarCobranca = async (boleto) => {
 			status,
 		],
 	};
-	const resposta = await database.query(query);
+	const resposta = await Database.query(query);
 	return resposta.rows.shift();
 };
 
@@ -44,23 +44,36 @@ const controleDeCobrancasDB = async (idUsuario) => {
 			);`,
 		values: [idUsuario],
 	};
-	const result = await database.query(query);
+	const result = await Database.query(query);
 	return result.rows;
 };
 
-const quitarCobranca = async (idDaCobranca) => {
+const buscarUmaCobrancaDB = async (idDaCobranca) => {
+	const query = {
+		text: `SELECT * 
+				FROM cobrancas
+				WHERE id = $1;`,
+		values: [idDaCobranca],
+	};
+
+	const result = await Database.query(query);
+	return result.rows.shift();
+};
+
+const quitarCobrancaDB = async (idDaCobranca) => {
 	const query = {
 		text: `UPDATE cobrancas
 				SET status = 'PAGO'
 				WHERE id = $1 RETURNING*;`,
 		values: [idDaCobranca],
 	};
-	const response = await database.query(query);
+	const response = await Database.query(query);
 	return response.rows.shift();
 };
 
 module.exports = {
-	gerarCobranca,
+	gerarCobrancaDB,
 	controleDeCobrancasDB,
-	quitarCobranca,
+	buscarUmaCobrancaDB,
+	quitarCobrancaDB,
 };
