@@ -15,7 +15,8 @@ const server = new Koa();
 
 server.use(bodyparser());
 server.use(router.routes());
+server.use(Cors());
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', null, () => {
 	console.log(`Servidor rodando na porta ${PORT}!`);
 });
